@@ -76,7 +76,7 @@ that's `/boris:builder`.
 
 **Invocation:** `/boris:prototyper a tool to help on-call engineers during incidents`
 
-**Response (abridged):**
+**Response (abridged):** *(numbers below are illustrative — report only what your spike actually showed)*
 
 > **Stage:** new tooling, pre-PMF → Prototyper fits.
 > **Problem:** On-call engineers lose minutes hunting context at 3am during an incident.

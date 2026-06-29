@@ -31,8 +31,10 @@ Do **not** use to add new behavior (`/boris:builder`) or to grow usage
 
 1. **Stage check.** Confirm there's a real built system to clean (post-build,
    any stage). Read `.boris/build-plan.md` if present for context on what shipped.
-2. **Survey with real tooling — measure, don't eyeball.** Actually run the
-   analyzers available in the repo's ecosystem and record numbers:
+2. **Survey with real tooling — measure, don't eyeball.** Run the analyzers that
+   are actually installed in the repo's ecosystem and record real numbers. **If a
+   tool isn't available, say so, give the install command or fall back to a manual
+   read — never report a number you didn't measure.** Useful analyzers:
    - dead/unreachable code (e.g. `knip`, `ts-prune`, `vulture`, coverage gaps)
    - duplication & complexity (e.g. `jscpd`, lint complexity rules, `radon`)
    - size & perf (bundle analyzer, `time`/profiler on hot paths)
@@ -52,7 +54,7 @@ Do **not** use to add new behavior (`/boris:builder`) or to grow usage
 
 - Deletion-first — the best code is the code you removed.
 - Behavior-preserving — if behavior changes, it's not sweeping.
-- Measure, don't guess — numbers before and after every change.
+- Measure, don't guess — numbers before and after every change. No tool, no number: if you can't run it, say so; never fabricate measurements.
 - Less surface area — fewer features, options, and abstractions to maintain.
 
 ## Handoff
@@ -73,7 +75,7 @@ Do **not** use to add new behavior (`/boris:builder`) or to grow usage
 
 **Invocation:** `/boris:sweeper the incident bot has grown 6 config flags and a slow summary path`
 
-**Response (abridged):**
+**Response (abridged):** *(numbers below are illustrative — report only what your tools actually measured)*
 
 > **Survey (measured):** `knip` flags a 0-call "email digest" feature; usage logs
 > show 2 flags never set off-default; `jscpd` finds a duplicated fetch; profiler

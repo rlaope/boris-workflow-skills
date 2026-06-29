@@ -33,15 +33,16 @@ product in the first place (`/boris:builder`).
    live. Then wire up the actual signal before reasoning: an analytics export or
    CSV, the funnel/event data, churn reasons, and qualitative feedback. **If no
    data is available, say so explicitly and ask for it — never invent metrics or
-   lifts.** Read `.boris/growth-plan.md` from a prior round if it exists.
+   lifts.** Read `.boris/build-plan.md` (what shipped) and `.boris/growth-plan.md`
+   from a prior round if they exist.
 2. **Pick the North Star + the metric to move now.** One metric this cycle —
    activation, retention, conversion, or referral. Growth without a target metric
    is just churn.
 3. **Diagnose.** From the data, find the single biggest funnel leak or the place
    the value proposition isn't landing.
 4. **Generate experiments.** Concrete changes mapped to the target metric. For
-   each: a **hypothesis**, an **expected lift** (grounded in the data, not
-   guessed), and the **effort**.
+   each: a **hypothesis**, an **estimated lift** (state the assumption behind the
+   estimate), and the **effort**.
 5. **Prioritize with ICE.** Score Impact × Confidence ÷ Effort; pick the top few.
    Don't run everything at once.
 6. **Define measurement + loop.** For each chosen experiment: success metric,
@@ -73,7 +74,7 @@ product in the first place (`/boris:builder`).
 
 **Invocation:** `/boris:grower the incident bot launched but only 20% of on-call engineers use it twice`
 
-**Response (abridged):**
+**Response (abridged):** *(numbers below are illustrative — report only what your data actually shows)*
 
 > **Data:** pulled usage logs (no retention-cohort table yet → flagged & requested).
 > Most first-uses are mid-incident; 60% never return. Feedback: "I forgot it existed."

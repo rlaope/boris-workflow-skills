@@ -33,7 +33,10 @@ Do **not** use to build something new (`/boris:builder`) or to grow usage
 1. **Stage check + inventory.** Confirm the system is mature/in-production. List
    components, dependencies, SLOs/SLAs, known risks, and recurring on-call pain.
    Read `.boris/build-plan.md` and `.boris/sweep-report.md` if present.
-2. **Run real audits — execute the scans, don't just describe them:**
+2. **Run real audits — execute the scans that match this repo's stack.** Pick the
+   scanners for the ecosystem in use (don't run `pip-audit` on a Node repo).
+   **If a scanner isn't installed, say so, give the install command or fall back
+   to a manual review — never invent findings.** Cover:
    - **Security** — dependency/CVE scan (`npm audit`, `pip-audit`, `osv-scanner`,
      Dependabot data), secret scan (`gitleaks`, `trufflehog`), authn/authz and
      input-trust review
@@ -50,11 +53,14 @@ Do **not** use to build something new (`/boris:builder`) or to grow usage
 6. **Guardrails + rerunnable health check.** Add monitoring/alerts, runbooks, and
    regression tests so fixes stay fixed. Write `.boris/maintenance-plan.md` with
    the risk register and a **health-check checklist/script** that can be rerun
-   each cycle to catch regressions early.
+   each cycle to catch regressions early. Record the *locations* of risks, never
+   raw secret values, and keep `.boris/` out of version control — it is local
+   working state.
 
 ## Principles
 
 - Secure and reliable by default — safety isn't optional at maturity.
+- No scan, no finding — if a scanner can't run, say so and fall back to manual review; never fabricate audit results.
 - Prioritize by risk — severity × likelihood, not by what's interesting.
 - Make fixes durable — a fix without a guardrail regresses.
 - Boring and observable — predictable systems beat clever ones at scale.
@@ -75,7 +81,7 @@ Do **not** use to build something new (`/boris:builder`) or to grow usage
 
 **Invocation:** `/boris:maintainer the incident bot is now used org-wide and reads our deploy + git APIs`
 
-**Response (abridged):**
+**Response (abridged):** *(findings below are illustrative — report only what scans that actually ran returned)*
 
 > **Inventory:** 1 service, 2 upstream APIs, no SLO, 2 timeout pages last month.
 > **Audit (ran scans):** `gitleaks` found an API token in plaintext env; `npm audit`
