@@ -21,6 +21,14 @@ As engineering, product, design, and data science melt into a new kind of role, 
 
 What's your inclination right now? Tag the skill that fits it and ask it to set your direction.
 
+Not sure which mode you're in? Start from where the product is — a healthy team needs a different mix at each stage:
+
+| Product stage | Lean on | Start with |
+|---|---|---|
+| New / pre-PMF | Prototyper · Builder · Sweeper (1+2+3) | `/boris:prototyper` |
+| Growing / found PMF | Builder · Sweeper · Grower, some Maintainer (2+3+4+5) | `/boris:grower` |
+| Strong PMF | Sweeper · Grower · Maintainer, some Builder (3+4+5+2) | `/boris:maintainer` |
+
 ---
 
 Archetypes by Boris Cherny ([@bcherny](https://x.com/bcherny)). Licensed under [MIT](./LICENSE).
