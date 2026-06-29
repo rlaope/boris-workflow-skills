@@ -6,12 +6,20 @@ As engineering, product, design, and data science melt into a new kind of role, 
   <img src="./boris-post.png" alt="Boris Cherny's original post" width="420">
 </p>
 
+<br>
+
 ## Install
 
 ```
 /plugin marketplace add rlaope/boris-workflow-skills
 /plugin install boris@boris-workflow-skills
 ```
+
+<br>
+
+## Guide
+
+What's your inclination right now? Tag the skill that fits it and ask it to set your direction.
 
 ---
 
