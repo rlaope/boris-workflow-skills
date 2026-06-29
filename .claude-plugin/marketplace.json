@@ -1,0 +1,14 @@
+{
+  "name": "boris-workflow-skills",
+  "owner": {
+    "name": "rlaope",
+    "url": "https://github.com/rlaope"
+  },
+  "plugins": [
+    {
+      "name": "boris",
+      "source": "./",
+      "description": "Five product-role archetype skills: prototyper, builder, sweeper, grower, maintainer."
+    }
+  ]
+}
