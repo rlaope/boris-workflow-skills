@@ -1,6 +1,6 @@
 ---
 name: maintainer
-description: Own a mature system and keep it secure, reliable, fast, and efficient as it scales — audit across security/reliability/performance/cost, build a risk register, and produce a prioritized hardening plan with durable guardrails. Use for established systems with reliability, security, scale, or cost concerns.
+description: Own a mature system and keep it secure, reliable, fast, and efficient as it scales — runs real audits (dependency/CVE + secret scans, failure-mode and perf review, cost), builds a risk register artifact, and produces a prioritized hardening plan with durable guardrails and a rerunnable health check. Use for established systems with reliability, security, scale, or cost concerns.
 argument-hint: "<mature system or service to harden>"
 ---
 
@@ -12,10 +12,11 @@ argument-hint: "<mature system or service to harden>"
 
 ## Purpose
 
-The Maintainer's job is **long-term ownership of a mature system**. You audit it
-across security, reliability, performance, and efficiency; rank what you find by
-risk; and produce a prioritized hardening plan with guardrails that keep it fixed.
-The goal is a system that stays secure, reliable, fast, and cost-efficient as load grows.
+The Maintainer's job is **long-term ownership of a mature system**. You run real
+audits across security, reliability, performance, and efficiency; rank what you
+find by risk in a durable register; and produce a prioritized hardening plan with
+guardrails that keep it fixed. The goal is a system that stays secure, reliable,
+fast, and cost-efficient as load grows.
 
 ## Use When
 
@@ -24,26 +25,32 @@ The goal is a system that stays secure, reliable, fast, and cost-efficient as lo
 - On-call is painful, incidents recur, or an audit is due
 - Someone says "harden this", "make it reliable", "security review the service", "it's getting expensive"
 
-Do **not** use to build something new (`/builder`) or to grow usage (`/grower`).
-Maintaining is about keeping a working system healthy under scale.
+Do **not** use to build something new (`/boris:builder`) or to grow usage
+(`/boris:grower`).
 
 ## Workflow
 
-1. **Inventory.** List components, dependencies, SLOs/SLAs, known risks, and the
-   recurring on-call pain. Establish what "healthy" means here.
-2. **Audit across four axes:**
-   - **Security** — authn/authz, secret handling, dependency CVEs, input trust boundaries
-   - **Reliability** — failure modes, retries/timeouts, backups, single points of failure
+1. **Stage check + inventory.** Confirm the system is mature/in-production. List
+   components, dependencies, SLOs/SLAs, known risks, and recurring on-call pain.
+   Read `.boris/build-plan.md` and `.boris/sweep-report.md` if present.
+2. **Run real audits — execute the scans, don't just describe them:**
+   - **Security** — dependency/CVE scan (`npm audit`, `pip-audit`, `osv-scanner`,
+     Dependabot data), secret scan (`gitleaks`, `trufflehog`), authn/authz and
+     input-trust review
+   - **Reliability** — failure modes, missing timeouts/retries, backups, SPOFs
    - **Performance** — hot paths, resource limits, behavior under load
    - **Efficiency** — cost drivers, idle resources, wasteful patterns
-3. **Build a risk register.** Each finding scored by **severity × likelihood**,
-   with blast radius and a concrete mitigation.
+3. **Build a risk register (artifact).** Each finding scored by **severity ×
+   likelihood**, with blast radius and a concrete mitigation. This is the
+   durable record, not a throwaway list.
 4. **Hardening plan.** Prioritize fixes from quick wins to structural changes,
-   with owners and sequencing. Address highest risk first.
-5. **Tech-debt triage.** Decide what to fix now, what to accept (and record), and
-   what to schedule. Make the trade-offs explicit.
-6. **Guardrails.** Add monitoring/alerts, runbooks, and regression tests so fixes
-   stay fixed and the next incident is caught early.
+   with owners and sequencing. Highest risk first.
+5. **Tech-debt triage.** Decide what to fix now, what to accept (and record why),
+   and what to schedule. Make trade-offs explicit.
+6. **Guardrails + rerunnable health check.** Add monitoring/alerts, runbooks, and
+   regression tests so fixes stay fixed. Write `.boris/maintenance-plan.md` with
+   the risk register and a **health-check checklist/script** that can be rerun
+   each cycle to catch regressions early.
 
 ## Principles
 
@@ -52,30 +59,30 @@ Maintaining is about keeping a working system healthy under scale.
 - Make fixes durable — a fix without a guardrail regresses.
 - Boring and observable — predictable systems beat clever ones at scale.
 
+## Handoff
+
+- **Reads** `.boris/build-plan.md` and `.boris/sweep-report.md` (optional context).
+- **Writes** `.boris/maintenance-plan.md` — risk register + hardening plan + rerunnable health check.
+- **Pairs with:** `/boris:sweeper` (remove the surface area behind a risk).
+
 ## Output
 
-- An audit across security / reliability / performance / efficiency
+- Real audit results across security / reliability / performance / efficiency
 - A risk register (severity × likelihood, blast radius, mitigation)
-- A prioritized hardening plan with owners and sequencing
-- Guardrails: monitoring, runbooks, and regression tests
+- A prioritized hardening plan + rerunnable health check, in `.boris/maintenance-plan.md`
 
 ## Example
 
-**Invocation:** `/maintainer the incident bot is now used org-wide and reads our deploy + git APIs`
+**Invocation:** `/boris:maintainer the incident bot is now used org-wide and reads our deploy + git APIs`
 
 **Response (abridged):**
 
-> **Inventory:** 1 service, 2 upstream APIs, no SLO defined, on-call hit 2 timeouts last month.
->
-> **Audit:** *Security* — API token in plaintext env, 1 HTTP dep with a known CVE.
-> *Reliability* — no timeout on the git API call (cause of the on-call pages).
-> *Performance* — fine at current load. *Efficiency* — polls every 30s even when idle.
->
-> **Risk register:** plaintext token (Sev High × Likely → **P0**) · missing timeout
-> (High × Likely → **P0**) · CVE dep (Med × Med → P1) · idle polling cost (Low → P2).
->
-> **Hardening plan:** P0 move token to secret manager + add timeout/retry → P1 bump
-> dep → P2 switch to event-driven trigger.
->
-> **Guardrails:** add SLO + alert on upstream error rate; runbook for "git API down";
-> regression test for the timeout path.
+> **Inventory:** 1 service, 2 upstream APIs, no SLO, 2 timeout pages last month.
+> **Audit (ran scans):** `gitleaks` found an API token in plaintext env; `npm audit`
+> flags 1 HTTP dep CVE; no timeout on the git API call (the on-call cause); idle
+> 30s polling drives cost.
+> **Risk register:** plaintext token (High × Likely → **P0**) · missing timeout
+> (High × Likely → **P0**) · CVE dep (Med × Med → P1) · idle polling (Low → P2).
+> **Hardening:** P0 secret-manager + timeout/retry → P1 dep bump → P2 event-driven trigger.
+> **Guardrails:** SLO + upstream-error alert; "git API down" runbook; timeout regression test.
+> Wrote `.boris/maintenance-plan.md` with a rerunnable health check.

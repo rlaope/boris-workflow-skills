@@ -1,6 +1,6 @@
 ---
 name: sweeper
-description: Simplify code and systems, clean up UI, unship unused features, and optimize performance — reduces complexity and surface area while preserving intended behavior. Use when cruft and complexity have accumulated, before scaling, or when something is slow.
+description: Simplify code and systems, clean up UI, unship unused features, and optimize performance — runs real analysis (dead-code, complexity, perf), adds a safety net first, and proves behavior is unchanged with before/after numbers. Use when cruft and complexity have accumulated, before scaling, or when something is slow.
 argument-hint: "<code, system, or feature area to simplify>"
 ---
 
@@ -14,8 +14,8 @@ argument-hint: "<code, system, or feature area to simplify>"
 
 The Sweeper's job is **reducing surface area**. You delete dead code, unship
 unused features, collapse needless abstractions, simplify the UI, and optimize
-hot paths — all **without changing intended behavior**. Less to maintain, less to
-break, faster to run.
+hot paths — all **without changing intended behavior**, and all backed by
+measurement rather than guesswork. Less to maintain, less to break, faster to run.
 
 ## Use When
 
@@ -24,57 +24,63 @@ break, faster to run.
 - Performance has degraded or matters now
 - You're about to scale and want a lean base first
 
-Do **not** use to add new behavior (`/builder`) or to grow usage (`/grower`).
-Sweeping is behavior-preserving by definition.
+Do **not** use to add new behavior (`/boris:builder`) or to grow usage
+(`/boris:grower`). Sweeping is behavior-preserving by definition.
 
 ## Workflow
 
-1. **Survey the surface area.** Map modules, features, dependencies, and hot
-   paths. Find duplication, dead/unreachable code, unused features, configuration
-   sprawl, and complexity hotspots.
-2. **Triage into three lists**, each with risk + benefit:
-   - **(a) Delete / unship** — code or features to remove outright
-   - **(b) Simplify** — abstractions to collapse, options to cut, UI to streamline
-   - **(c) Optimize** — performance hotspots worth fixing
-3. **Establish a safety net.** Confirm there's a behavior baseline (tests, or
-   characterization tests you add first) so you can prove nothing changed.
-4. **Cut (deletion-first).** Remove dead code and unused features, collapse
-   abstractions, reduce config/flags, simplify the UI. Smallest reversible steps.
-5. **Optimize with measurement.** Profile first, fix the top hotspots, and
-   **measure before/after** — never optimize on a guess.
-6. **Verify.** Tests green and behavior unchanged. Report the deltas: lines/files
-   removed, features unshipped, complexity reduced, perf improved.
+1. **Stage check.** Confirm there's a real built system to clean (post-build,
+   any stage). Read `.boris/build-plan.md` if present for context on what shipped.
+2. **Survey with real tooling — measure, don't eyeball.** Actually run the
+   analyzers available in the repo's ecosystem and record numbers:
+   - dead/unreachable code (e.g. `knip`, `ts-prune`, `vulture`, coverage gaps)
+   - duplication & complexity (e.g. `jscpd`, lint complexity rules, `radon`)
+   - size & perf (bundle analyzer, `time`/profiler on hot paths)
+   - feature usage (logs/analytics) to justify unship candidates
+3. **Triage into three lists**, each with risk + benefit + the measured evidence:
+   **(a) delete / unship**, **(b) simplify**, **(c) optimize**.
+4. **Establish a safety net first.** Before cutting, ensure a behavior baseline —
+   add **characterization tests** pinning current outputs where coverage is thin.
+5. **Cut (deletion-first), then optimize.** Remove dead code and unused features,
+   collapse abstractions, reduce flags/config, simplify the UI. Optimize only the
+   measured hotspots, and capture **before/after** numbers for each.
+6. **Verify and hand off.** Tests green, behavior identical. Produce the change as
+   a reviewable deletion PR and write `.boris/sweep-report.md` with the deltas
+   (LOC/files removed, features unshipped, complexity ↓, perf before→after).
 
 ## Principles
 
 - Deletion-first — the best code is the code you removed.
 - Behavior-preserving — if behavior changes, it's not sweeping.
-- Measure, don't guess — profile before and after every optimization.
+- Measure, don't guess — numbers before and after every change.
 - Less surface area — fewer features, options, and abstractions to maintain.
+
+## Handoff
+
+- **Reads** `.boris/build-plan.md` (optional context).
+- **Writes** `.boris/sweep-report.md` — measured deltas + the deletion PR link.
+- **Pairs with:** `/boris:maintainer` (durable guardrails) and `/boris:grower`
+  (a lean base makes experiments cheaper).
 
 ## Output
 
-- A simplification diff (what was removed/collapsed)
-- An unship list (features removed, with rationale)
+- A deletion PR (what was removed/collapsed), behavior-preserving
+- An unship list with usage evidence
 - Performance wins with **before/after** measurements
-- Confirmation that behavior is unchanged (tests green)
+- `.boris/sweep-report.md` summarizing the deltas
 
 ## Example
 
-**Invocation:** `/sweeper the incident bot has grown to 6 config flags and a slow summary path`
+**Invocation:** `/boris:sweeper the incident bot has grown 6 config flags and a slow summary path`
 
 **Response (abridged):**
 
-> **Survey:** 6 flags; usage logs show 2 never set to non-default. `SummaryBuilder`
-> re-fetches the change log twice. A legacy "email digest" feature has 0 calls in 90 days.
->
-> **Triage:** (a) unship email digest + 2 dead flags · (b) collapse the duplicate
-> fetch into one client call · (c) the summary path does an O(n²) merge.
->
+> **Survey (measured):** `knip` flags a 0-call "email digest" feature; usage logs
+> show 2 flags never set off-default; `jscpd` finds a duplicated fetch; profiler
+> shows the summary merge at 820ms (O(n²)).
+> **Triage:** (a) unship email digest + 2 dead flags · (b) dedupe the fetch · (c) the merge.
 > **Safety net:** added 3 characterization tests pinning current output.
->
-> **Cut:** removed email digest (−240 LOC), removed 2 flags, deduped the fetch.
->
-> **Optimized:** replaced O(n²) merge with a map join. **Before:** 820ms · **After:** 110ms.
->
-> **Verified:** all tests green, output byte-identical. Net −310 LOC, 4 flags, 7.5× faster.
+> **Cut:** removed email digest (−240 LOC) + 2 flags; deduped fetch.
+> **Optimized:** map-join merge. **Before 820ms · After 110ms.**
+> **Verified:** all green, output byte-identical. Net −310 LOC, 4 flags, 7.5× faster.
+> Wrote `.boris/sweep-report.md`; opened deletion PR.
